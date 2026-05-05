@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Panda Universe | Image Sequence Scrub Test</title>
+  <title>Panda Universe | Immersive Portfolio</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -116,7 +116,6 @@
       .content {
         width: min(92vw, 700px);
       }
-
       .scroll-indicator {
         bottom: 24px;
         font-size: 0.7rem;
@@ -129,7 +128,7 @@
   <div id="scroll-space"></div>
 
   <main class="immersive-wrapper">
-    <!-- Scene 1 -->
+    <!-- Scene 1: Hero -->
     <section class="scene" id="scene-1">
       <canvas id="canvas-1"></canvas>
       <div class="overlay" style="background: rgba(0,0,0,0.30);"></div>
@@ -139,7 +138,7 @@
       </div>
     </section>
 
-    <!-- Scene 2 -->
+    <!-- Scene 2: Commercial -->
     <section class="scene" id="scene-2">
       <canvas id="canvas-2"></canvas>
       <div class="overlay" style="background: rgba(0,0,0,0.45);"></div>
@@ -149,7 +148,7 @@
       </div>
     </section>
 
-    <!-- Scene 3 -->
+    <!-- Scene 3: Art & Direction -->
     <section class="scene" id="scene-3">
       <canvas id="canvas-3"></canvas>
       <div class="overlay" style="background: rgba(0,0,0,0.55);"></div>
@@ -164,43 +163,45 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
+      // 1. 캡처해주신 파일명 규칙에 맞춰 세팅을 변경했습니다.
       const scenes = [
         {
           el: document.getElementById("scene-1"),
           canvas: document.getElementById("canvas-1"),
-          folder: "img sequence",
-          prefix: "web_01_",
-          frameCount: 181
+          folder: "img sequence_2",
+          prefix: "web_01",
+          frameCount: 151 // 000 ~ 150 = 총 151장
         },
         {
           el: document.getElementById("scene-2"),
           canvas: document.getElementById("canvas-2"),
-          folder: "img sequence",
-          prefix: "web_02_",
-          frameCount: 181
+          folder: "img sequence_2",
+          prefix: "web_02",
+          frameCount: 151
         },
         {
           el: document.getElementById("scene-3"),
           canvas: document.getElementById("canvas-3"),
-          folder: "img sequence",
-          prefix: "web_03_",
-          frameCount: 181
+          folder: "img sequence_2",
+          prefix: "web_03",
+          frameCount: 151
         }
       ];
 
       const scrollSpace = document.getElementById("scroll-space");
       const totalScenes = scenes.length;
 
-      // 한 씬당 스크롤 길이
       const scrollPerScene = window.innerHeight * 1.7;
       scrollSpace.style.height = `${scrollPerScene * totalScenes}px`;
 
-      function pad(num, size = 5) {
+      // 2. 숫자를 3자리(000)로 패딩하도록 변경했습니다.
+      function pad(num, size = 3) {
         return String(num).padStart(size, "0");
       }
 
+      // 3. 폴더명/접두사/3자리숫자.jpg 형태로 불러오도록 변경했습니다. (예: img sequence_2/web_01000.jpg)
       function getFramePath(scene, index) {
-        return `${scene.folder}/${scene.prefix}${pad(index)}.png`;
+        return `${scene.folder}/${scene.prefix}${pad(index)}.jpg`;
       }
 
       function setupCanvas(scene) {
@@ -287,7 +288,6 @@
             };
 
             img.onerror = () => {
-              // 에러 나도 진행은 하되, 첫 프레임조차 못 불러오면 테스트 어려움
               console.warn("Failed to load frame:", getFramePath(scene, i));
             };
           }
@@ -296,10 +296,7 @@
 
       scenes.forEach(setupCanvas);
 
-      // 첫 씬 우선 로드
       await preloadFrames(scenes[0], true);
-
-      // 나머지는 백그라운드 로드
       preloadFrames(scenes[1]);
       preloadFrames(scenes[2]);
 
@@ -330,7 +327,6 @@
           }
         }
 
-        // 다음 씬이 있다면 크로스페이드
         if (nextScene && nextScene !== currentScene) {
           const fadeStart = 0.72;
           const fadeProgress = clamp((progress - fadeStart) / (1 - fadeStart), 0, 1);
@@ -365,7 +361,6 @@
           drawFrame(currentScene, frameIndex);
         }
 
-        // 다음 씬 첫 프레임 미리 그릴 준비
         const nextScene = scenes[Math.min(currentIndex + 1, totalScenes - 1)];
         if (nextScene && nextScene !== currentScene && nextScene.loadedFrames && nextScene.loadedFrames[0] && nextScene.currentFrame == null) {
           drawFrame(nextScene, 0);
