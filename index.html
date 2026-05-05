@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panda Universe | Immersive Portfolio</title>
   
-  <!-- 첫 번째 포스터 이미지를 브라우저가 최우선으로 다운로드하도록 강제 -->
   <link rel="preload" as="image" href="img sequence_2/web_01000.jpg">
 
   <style>
+    /* ========== 1. 기본 설정 ========== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     html, body {
@@ -18,9 +18,7 @@
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
       overflow-x: hidden;
     }
-
     body { background: #000; }
-
     #scroll-space { width: 100%; }
 
     .immersive-wrapper {
@@ -49,7 +47,6 @@
       width: 100%;
       height: 100%;
       display: block;
-      /* 트랜지션 시 성능 최적화를 위해 will-change 추가 */
       will-change: transform, filter;
     }
 
@@ -60,11 +57,7 @@
       transition: opacity 0.35s ease;
     }
 
-    .scene-poster.is-hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-
+    .scene-poster.is-hidden { opacity: 0; pointer-events: none; }
     .scene canvas { z-index: 2; }
 
     .overlay {
@@ -75,49 +68,86 @@
       z-index: 3;
     }
 
+    /* ========== 2. 연출: 글래스 패널 (Frosted Glass) ========== */
     .content {
       position: absolute;
       left: 50%;
       top: 50%;
-      transform: translate(-50%, calc(-50% + 30px));
-      width: min(90vw, 900px);
+      /* transform은 JS 패럴랙스 연산에서 제어하므로 CSS 초기값만 세팅 */
+      transform: translate(-50%, -40%); 
+      width: min(85vw, 800px);
       text-align: center;
       z-index: 5;
       opacity: 0;
-      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-      will-change: opacity, transform;
+      visibility: hidden;
       pointer-events: none;
+
+      /* 유리 질감 세팅 */
+      background: rgba(25, 25, 25, 0.25); /* 살짝 어두운 반투명 */
+      backdrop-filter: blur(15px) saturate(120%);
+      -webkit-backdrop-filter: blur(15px) saturate(120%);
+      border: 1px solid rgba(255, 255, 255, 0.1); /* 유리 테두리 빛 반사 */
+      border-radius: 24px;
+      padding: 60px 40px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+      overflow: hidden; /* 내부 스윕 애니메이션이 밖으로 나가지 않게 */
+      
+      transition: opacity 0.6s ease, visibility 0.6s;
+      will-change: transform, opacity;
     }
 
     .content.is-visible {
       opacity: 1;
-      transform: translate(-50%, -50%);
+      visibility: visible;
     }
 
-    .brand-title {
-      font-size: clamp(2.6rem, 6vw, 5rem);
-      font-weight: 200;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 16px;
+    /* ========== 3. 연출: 하이라이트 스윕 (Specular Light Sweep) ========== */
+    .content::before {
+      content: "";
+      position: absolute;
+      top: 0; left: -150%;
+      width: 50%; height: 100%;
+      background: linear-gradient(
+        to right, 
+        rgba(255,255,255,0) 0%, 
+        rgba(255,255,255,0.15) 50%, 
+        rgba(255,255,255,0) 100%
+      );
+      transform: skewX(-30deg);
+      z-index: 0;
     }
 
-    .section-title {
-      font-size: clamp(2rem, 4vw, 3.2rem);
-      font-weight: 300;
-      letter-spacing: 1px;
-      margin-bottom: 14px;
+    /* 화면에 나타날 때 빛이 사선으로 한 번 훑고 지나감 */
+    .content.is-visible::before {
+      animation: sweep 1.5s cubic-bezier(0.25, 1, 0.5, 1) 0.3s forwards;
     }
 
-    .copy {
-      font-size: clamp(0.95rem, 1.4vw, 1.15rem);
-      line-height: 1.7;
-      opacity: 0.82;
-      max-width: 680px;
-      margin: 0 auto;
-      font-weight: 300;
+    @keyframes sweep {
+      0% { left: -150%; }
+      100% { left: 200%; }
     }
 
+    /* ========== 4. 연출: 텍스트 스태거 (Stagger Reveal) ========== */
+    .brand-title, .section-title, .copy {
+      position: relative;
+      z-index: 1; /* 스윕 빛보다 텍스트가 위에 오도록 */
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .brand-title { font-size: clamp(2.6rem, 5vw, 4.5rem); font-weight: 200; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; transition-delay: 0.1s; }
+    .section-title { font-size: clamp(2rem, 3.5vw, 3.2rem); font-weight: 300; letter-spacing: 1px; margin-bottom: 14px; transition-delay: 0.1s; }
+    .copy { font-size: clamp(0.95rem, 1.4vw, 1.15rem); line-height: 1.7; opacity: 0.82; max-width: 600px; margin: 0 auto; font-weight: 300; transition-delay: 0.25s; }
+
+    .content.is-visible .brand-title,
+    .content.is-visible .section-title,
+    .content.is-visible .copy {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ========== UI ========== */
     .scroll-indicator {
       position: absolute;
       left: 50%;
@@ -131,7 +161,7 @@
     }
 
     @media (max-width: 768px) {
-      .content { width: min(92vw, 700px); }
+      .content { padding: 40px 20px; width: min(92vw, 700px); }
       .scroll-indicator { bottom: 24px; font-size: 0.7rem; }
     }
   </style>
@@ -281,7 +311,7 @@
         if (poster) poster.classList.add("is-hidden");
       }
 
-      // 🚀 핵심 최적화: 브라우저 마비를 막는 배치(Batch) 로딩 함수
+      // 배치 순차 로딩 로직 유지
       function preloadFrames(scene, priority = false) {
         scene.loadedFrames = new Array(scene.frameCount);
         scene.loadedCount = 0;
@@ -289,20 +319,17 @@
         return new Promise((resolve) => {
           let resolved = false;
 
-          // 1.5초 후 무조건 리졸브 (안전장치)
           setTimeout(() => {
             if (!resolved) { resolved = true; resolve(); }
           }, 1500);
 
           let i = 0;
-          // 한 번에 모든 프레임을 요청하지 않고 끊어서 요청
           function loadNextBatch() {
-            // 첫 씬은 40장씩 빠르게, 나머지는 15장씩 여유롭게 요청
             const batchSize = priority ? 40 : 15;
             const end = Math.min(i + batchSize, scene.frameCount);
 
             for (; i < end; i++) {
-              const index = i; // 클로저 이슈 방지
+              const index = i;
               const img = new Image();
               img.decoding = "async";
               if (priority && index < 20) img.fetchPriority = "high";
@@ -313,7 +340,6 @@
                 scene.loadedFrames[index] = img;
                 scene.loadedCount++;
 
-                // 첫 프레임 로드 시 화면에 띄움
                 if (!resolved && scene.loadedFrames[0]) {
                   drawFrame(scene, 0);
                   resolved = true;
@@ -326,23 +352,17 @@
               };
             }
 
-            // 남은 프레임이 있으면 아주 짧은 휴식 후 다음 배치 로드
             if (i < scene.frameCount) {
               setTimeout(loadNextBatch, 30);
             }
           }
 
-          loadNextBatch(); // 배치 로딩 시작
+          loadNextBatch();
         });
       }
 
       scenes.forEach(setupCanvas);
 
-      scenes[0].el.style.visibility = "visible";
-      scenes[0].el.style.opacity = 1;
-      scenes[0].el.querySelector(".content")?.classList.add("is-visible");
-
-      // 🚀 핵심 최적화: 씬 1번을 우선 로드 후, 2~5번을 '순차적으로' 로드
       await preloadFrames(scenes[0], true);
       
       async function loadRemainingScenes() {
@@ -350,7 +370,7 @@
           await preloadFrames(scenes[i]);
         }
       }
-      loadRemainingScenes(); // 백그라운드에서 조용히 실행됨
+      loadRemainingScenes();
 
       function clamp(value, min, max) {
         return Math.max(min, Math.min(max, value));
@@ -361,13 +381,17 @@
         const localY = scrollY - currentIndex * scrollPerScene;
         const progress = clamp(localY / scrollPerScene, 0, 1);
 
-        // 초기화: 현재 보고 있지 않은 씬 리셋
         scenes.forEach((scene, i) => {
           if (!scene.el) return;
           if (i !== currentIndex && i !== currentIndex + 1) {
             scene.el.style.visibility = "hidden";
             scene.el.style.opacity = 0;
-            scene.el.querySelector(".content")?.classList.remove("is-visible");
+            const content = scene.el.querySelector(".content");
+            if(content) {
+              content.classList.remove("is-visible");
+              // 패럴랙스 리셋
+              content.style.transform = `translate(-50%, -40%)`;
+            }
             if(scene.canvas) {
               scene.canvas.style.transform = 'scale(1)';
               scene.canvas.style.filter = 'blur(0px)';
@@ -381,37 +405,38 @@
         if (currentScene && currentScene.el) {
           currentScene.el.style.visibility = "visible";
           currentScene.el.style.opacity = 1;
-
-          if (progress > 0.12 && progress < 0.78) {
-            currentScene.el.querySelector(".content")?.classList.add("is-visible");
-          } else {
-            currentScene.el.querySelector(".content")?.classList.remove("is-visible");
+          
+          const content = currentScene.el.querySelector(".content");
+          if (content) {
+            if (progress > 0.12 && progress < 0.78) {
+              content.classList.add("is-visible");
+              
+              // ========== 연출 5: 글래스 패널 패럴랙스 연산 ==========
+              // 배경 이미지와 텍스트 박스가 서로 다른 속도로 움직이는 듯한 깊이감 제공
+              const parallaxY = (progress - 0.45) * 150; 
+              content.style.transform = `translate(-50%, calc(-50% - ${parallaxY}px))`;
+            } else {
+              content.classList.remove("is-visible");
+            }
           }
         }
 
-        // 🎥 시네마틱 트랜지션 효과 적용 (Blur & Scale)
         if (nextScene && nextScene !== currentScene && nextScene.el) {
           const fadeStart = 0.72;
           const fadeProgress = clamp((progress - fadeStart) / (1 - fadeStart), 0, 1);
 
           if (fadeProgress > 0) {
-            // 현재 씬: 점점 투명해지고 블러 처리되며 살짝 커짐 (아웃포커싱)
             currentScene.el.style.opacity = 1 - fadeProgress;
             if(currentScene.canvas) {
               currentScene.canvas.style.transform = `scale(${1 + fadeProgress * 0.05})`;
               currentScene.canvas.style.filter = `blur(${fadeProgress * 15}px)`;
             }
 
-            // 다음 씬: 투명도가 진해지고 블러가 풀리며 다가옴 (인포커싱)
             nextScene.el.style.visibility = "visible";
             nextScene.el.style.opacity = fadeProgress;
             if(nextScene.canvas) {
               nextScene.canvas.style.transform = `scale(${1.05 - fadeProgress * 0.05})`;
               nextScene.canvas.style.filter = `blur(${(1 - fadeProgress) * 15}px)`;
-            }
-
-            if (fadeProgress > 0.35) {
-              nextScene.el.querySelector(".content")?.classList.add("is-visible");
             }
           }
         }
