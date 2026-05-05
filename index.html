@@ -42,13 +42,31 @@
       pointer-events: none;
     }
 
-    .scene canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
+.scene-poster,
+.scene canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.scene-poster {
+  object-fit: cover;
+  z-index: 1;
+  opacity: 1;
+  transition: opacity 0.35s ease;
+}
+
+.scene-poster.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.scene canvas {
+  z-index: 2;
+}
+
 
     .overlay {
       position: absolute;
@@ -130,7 +148,9 @@
   <main class="immersive-wrapper">
     <!-- Scene 1: Hero -->
     <section class="scene" id="scene-1">
-      <canvas id="canvas-1"></canvas>
+  <img id="poster-1" class="scene-poster" src="img sequence_2/web_01000.jpg" alt="">
+  <canvas id="canvas-1"></canvas>
+
       <div class="overlay" style="background: rgba(0,0,0,0.30);"></div>
       <div class="content">
         <h1 class="brand-title">Panda Universe</h1>
@@ -139,8 +159,10 @@
     </section>
 
     <!-- Scene 2: Commercial -->
-    <section class="scene" id="scene-2">
-      <canvas id="canvas-2"></canvas>
+<section class="scene" id="scene-2">
+  <img id="poster-2" class="scene-poster" src="img sequence_2/web_02000.jpg" alt="">
+  <canvas id="canvas-2"></canvas>
+
       <div class="overlay" style="background: rgba(0,0,0,0.45);"></div>
       <div class="content">
         <h2 class="section-title">Commercial Experience</h2>
@@ -149,12 +171,35 @@
     </section>
 
     <!-- Scene 3: Art & Direction -->
-    <section class="scene" id="scene-3">
-      <canvas id="canvas-3"></canvas>
+  <section class="scene" id="scene-3">
+  <img id="poster-3" class="scene-poster" src="img sequence_2/web_03000.jpg" alt="">
+  <canvas id="canvas-3"></canvas>
       <div class="overlay" style="background: rgba(0,0,0,0.55);"></div>
       <div class="content">
         <h2 class="section-title">Media Art & Direction</h2>
         <p class="copy">3D, motion, and AI-assisted image direction.</p>
+      </div>
+    </section>
+
+        <!-- Scene 4: Process -->
+    <section class="scene" id="scene-4">
+      <img id="poster-4" class="scene-poster" src="img sequence_2/web_04000.jpg" alt="">
+      <canvas id="canvas-4"></canvas>
+      <div class="overlay" style="background: rgba(0,0,0,0.50);"></div>
+      <div class="content">
+        <h2 class="section-title">Process & Workflow</h2>
+        <p class="copy">Design, motion, and production flow in sequence.</p>
+      </div>
+    </section>
+
+    <!-- Scene 5: Outro -->
+    <section class="scene" id="scene-5">
+      <img id="poster-5" class="scene-poster" src="img sequence_2/web_05000.jpg" alt="">
+      <canvas id="canvas-5"></canvas>
+      <div class="overlay" style="background: rgba(0,0,0,0.58);"></div>
+      <div class="content">
+        <h2 class="section-title">Contact & Closing</h2>
+        <p class="copy">Panda Universe — Visual direction for immersive media.</p>
       </div>
     </section>
 
@@ -164,34 +209,56 @@
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       // 1. 캡처해주신 파일명 규칙에 맞춰 세팅을 변경했습니다.
-      const scenes = [
-        {
-          el: document.getElementById("scene-1"),
-          canvas: document.getElementById("canvas-1"),
-          folder: "img sequence_2",
-          prefix: "web_01",
-          frameCount: 151 // 000 ~ 150 = 총 151장
-        },
-        {
-          el: document.getElementById("scene-2"),
-          canvas: document.getElementById("canvas-2"),
-          folder: "img sequence_2",
-          prefix: "web_02",
-          frameCount: 151
-        },
-        {
-          el: document.getElementById("scene-3"),
-          canvas: document.getElementById("canvas-3"),
-          folder: "img sequence_2",
-          prefix: "web_03",
-          frameCount: 151
-        }
-      ];
+     const scenes = [
+  {
+    id: 'scene-1',
+    canvasId: 'canvas-1',
+    prefix: 'web_01',
+    posterId: 'poster-1',
+    folder: 'img sequence_2',
+    frameCount: 181
+  },
+  {
+    id: 'scene-2',
+    canvasId: 'canvas-2',
+    prefix: 'web_02',
+    posterId: 'poster-2',
+    folder: 'img sequence_2',
+    frameCount: 181
+  },
+  {
+    id: 'scene-3',
+    canvasId: 'canvas-3',
+    prefix: 'web_03',
+    posterId: 'poster-3',
+    folder: 'img sequence_2',
+    frameCount: 181
+  },
+  {
+    id: 'scene-4',
+    canvasId: 'canvas-4',
+    prefix: 'web_04',
+    posterId: 'poster-4',
+    folder: 'img sequence_2',
+    frameCount: 181
+  },
+  {
+    id: 'scene-5',
+    canvasId: 'canvas-5',
+    prefix: 'web_05',
+    posterId: 'poster-5',
+    folder: 'img sequence_2',
+    frameCount: 181
+  }
+];
+
 
       const scrollSpace = document.getElementById("scroll-space");
       const totalScenes = scenes.length;
+  
 
-      const scrollPerScene = window.innerHeight * 1.7;
+
+      let scrollPerScene = window.innerHeight * 1.7;
       scrollSpace.style.height = `${scrollPerScene * totalScenes}px`;
 
       // 2. 숫자를 3자리(000)로 패딩하도록 변경했습니다.
@@ -201,8 +268,10 @@
 
       // 3. 폴더명/접두사/3자리숫자.jpg 형태로 불러오도록 변경했습니다. (예: img sequence_2/web_01000.jpg)
       function getFramePath(scene, index) {
-        return `${scene.folder}/${scene.prefix}${pad(index)}.jpg`;
-      }
+  return `${scene.folder}/${scene.prefix}${String(index).padStart(3, '0')}.jpg`;
+}
+
+
 
       function setupCanvas(scene) {
         const canvas = scene.canvas;
@@ -247,18 +316,22 @@
         ctx.drawImage(img, x, y, drawWidth, drawHeight);
       }
 
-      function drawFrame(scene, frameIndex) {
-        const img = scene.loadedFrames[frameIndex];
-        if (!img) return;
+    function drawFrame(scene, frameIndex) {
+  const img = scene.loadedFrames?.[frameIndex];
+  if (!img) return;
 
-        const ctx = scene.ctx;
-        const canvasWidth = window.innerWidth;
-        const canvasHeight = window.innerHeight;
+  const ctx = scene.ctx;
+  const canvasWidth = window.innerWidth;
+  const canvasHeight = window.innerHeight;
 
-        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        drawImageCover(ctx, img, canvasWidth, canvasHeight);
-        scene.currentFrame = frameIndex;
-      }
+  ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+  drawImageCover(ctx, img, canvasWidth, canvasHeight);
+  scene.currentFrame = frameIndex;
+
+  const poster = document.getElementById(scene.posterId);
+  if (poster) poster.classList.add("is-hidden");
+}
+
 
       function preloadFrames(scene, priority = false) {
         scene.loadedFrames = new Array(scene.frameCount);
@@ -296,9 +369,12 @@
 
       scenes.forEach(setupCanvas);
 
-      await preloadFrames(scenes[0], true);
-      preloadFrames(scenes[1]);
-      preloadFrames(scenes[2]);
+   await preloadFrames(scenes[0], true);
+preloadFrames(scenes[1]);
+preloadFrames(scenes[2]);
+preloadFrames(scenes[3]);
+preloadFrames(scenes[4]);
+
 
       function clamp(value, min, max) {
         return Math.max(min, Math.min(max, value));
@@ -383,9 +459,10 @@
         }
       });
 
-      window.addEventListener("resize", () => {
-        const newScrollPerScene = window.innerHeight * 1.7;
-        scrollSpace.style.height = `${newScrollPerScene * totalScenes}px`;
+window.addEventListener("resize", () => {
+  scrollPerScene = window.innerHeight * 1.7;
+  scrollSpace.style.height = `${scrollPerScene * totalScenes}px`;
+
 
         scenes.forEach(scene => {
           scene.resizeCanvas();
