@@ -53,6 +53,13 @@
             z-index: -2;
             transform: scale(1.05);
             transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+            opacity: 0; /* 처음에는 영상도 살짝 숨김 처리 */
+        }
+
+        .scene.is-active .scene-video {
+            transform: scale(1);
+            opacity: 1; /* 화면 진입 시 영상이 부드럽게 나타남 */
+            transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 1s ease;
         }
 
         .overlay {
@@ -73,17 +80,13 @@
             text-align: center;
             padding: 0 20px;
             opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 1s ease, transform 1s ease;
+            transform: translateY(40px); /* 텍스트가 조금 더 아래에서 올라오도록 수정 */
+            transition: opacity 1.2s ease 0.3s, transform 1.2s ease 0.3s; /* 영상 재생 후 0.3초 딜레이로 텍스트 등장 */
         }
 
         .scene.is-active .content {
             opacity: 1;
             transform: translateY(0);
-        }
-
-        .scene.is-active .scene-video {
-            transform: scale(1);
         }
 
         .brand-title {
@@ -121,8 +124,13 @@
             font-weight: 300;
             letter-spacing: 2px;
             text-transform: uppercase;
+            opacity: 0; /* 초기 숨김 */
+            transition: opacity 1s ease 1s; /* 씬 1 등장 후 1초 뒤에 나타남 */
+        }
+
+        .scene.is-active .scroll-indicator {
             opacity: 0.6;
-            animation: pulse 2s infinite;
+            animation: pulse 2s infinite 1s; /* 딜레이 후 펄스 애니메이션 시작 */
         }
 
         @keyframes pulse {
@@ -161,8 +169,9 @@
     <main class="immersive-container">
 
         <!-- Scene 1: Hero / Entrance -->
+        <!-- *주의: autoplay 속성을 모두 제거했습니다. -->
         <section class="scene" id="scene-01">
-            <video class="scene-video" src="video/web_01.mp4" poster="video/web_01_poster.jpg" autoplay loop muted playsinline></video>
+            <video class="scene-video" src="video/web_01.mp4" poster="video/web_01_poster.jpg" loop muted playsinline></video>
             <div class="overlay"></div>
             <div class="content">
                 <h1 class="brand-title">Panda Universe</h1>
@@ -173,7 +182,7 @@
 
         <!-- Scene 2: Core Work / Commercial Experience -->
         <section class="scene" id="scene-02">
-            <video class="scene-video" src="video/web_02.mp4" poster="video/web_02_poster.jpg" autoplay loop muted playsinline></video>
+            <video class="scene-video" src="video/web_02.mp4" poster="video/web_02_poster.jpg" loop muted playsinline></video>
             <div class="overlay" style="background: rgba(0,0,0,0.5);"></div>
             <div class="content">
                 <h2 class="section-title">Commercial Experience</h2>
@@ -183,7 +192,7 @@
 
         <!-- Scene 3: Personal Vision / AI / 3D Visual -->
         <section class="scene" id="scene-03">
-            <video class="scene-video" src="video/web_03.mp4" poster="video/web_03_poster.jpg" autoplay loop muted playsinline></video>
+            <video class="scene-video" src="video/web_03.mp4" poster="video/web_03_poster.jpg" loop muted playsinline></video>
             <div class="overlay" style="background: rgba(0,0,0,0.6);"></div>
             <div class="content">
                 <h2 class="section-title">Media Art & Direction</h2>
@@ -193,7 +202,7 @@
 
         <!-- Scene 4: Process / Workflow / Making -->
         <section class="scene" id="scene-04">
-            <video class="scene-video" src="video/web_04.mp4" poster="video/web_04_poster.jpg" autoplay loop muted playsinline></video>
+            <video class="scene-video" src="video/web_04.mp4" poster="video/web_04_poster.jpg" loop muted playsinline></video>
             <div class="overlay" style="background: rgba(0,0,0,0.7);"></div>
             <div class="content">
                 <h2 class="section-title">The Workflow</h2>
@@ -203,7 +212,7 @@
 
         <!-- Scene 5: Outro / Contact / Portfolio CTA -->
         <section class="scene" id="scene-05">
-            <video class="scene-video" src="video/web_05.mp4" poster="video/web_05_poster.jpg" autoplay loop muted playsinline></video>
+            <video class="scene-video" src="video/web_05.mp4" poster="video/web_05_poster.jpg" loop muted playsinline></video>
             <div class="overlay" style="background: rgba(0,0,0,0.5);"></div>
             <div class="content">
                 <h2 class="section-title">Designed to be felt<br>before explained.</h2>
@@ -220,6 +229,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             const scenes = document.querySelectorAll('.scene');
 
+            // 화면에 50% 이상 보일 때 이벤트를 발생시킵니다.
             const observerOptions = {
                 root: null,
                 rootMargin: '0px',
@@ -228,10 +238,22 @@
 
             const sceneObserver = new IntersectionObserver((entries, observer) => {
                 entries.forEach(entry => {
+                    // 현재 씬 안의 비디오 요소를 찾습니다.
+                    const video = entry.target.querySelector('video');
+
                     if (entry.isIntersecting) {
+                        // 스크롤이 도달하여 화면에 들어왔을 때
                         entry.target.classList.add('is-active');
+                        if(video) {
+                            video.play(); // 영상 재생 시작
+                        }
                     } else {
+                        // 스크롤이 지나가서 화면에서 벗어났을 때
                         entry.target.classList.remove('is-active');
+                        if(video) {
+                            video.pause(); // 영상 일시정지
+                            video.currentTime = 0; // 다시 돌아왔을 때 처음부터 재생되도록 초기화
+                        }
                     }
                 });
             }, observerOptions);
