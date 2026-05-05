@@ -255,7 +255,12 @@
 
       const scrollSpace = document.getElementById("scroll-space");
       const totalScenes = scenes.length;
-  
+        scenes.forEach(scene => {
+        scene.el = document.getElementById(scene.id);
+        scene.canvas = document.getElementById(scene.canvasId);
+        scene.poster = document.getElementById(scene.posterId);
+      });
+
 
 
       let scrollPerScene = window.innerHeight * 1.7;
@@ -273,9 +278,12 @@
 
 
 
-      function setupCanvas(scene) {
-        const canvas = scene.canvas;
-        const ctx = canvas.getContext("2d", { alpha: false });
+ function setupCanvas(scene) {
+  const canvas = scene.canvas;
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d", { alpha: false });
+
         scene.ctx = ctx;
 
         function resizeCanvas() {
@@ -385,16 +393,18 @@ preloadFrames(scenes[4]);
         const localY = scrollY - currentIndex * scrollPerScene;
         const progress = clamp(localY / scrollPerScene, 0, 1);
 
-        scenes.forEach((scene, i) => {
-          scene.el.style.visibility = "hidden";
-          scene.el.style.opacity = 0;
-          scene.el.querySelector(".content")?.classList.remove("is-visible");
-        });
+       scenes.forEach((scene, i) => {
+  if (!scene.el) return;
+  scene.el.style.visibility = "hidden";
+  scene.el.style.opacity = 0;
+  scene.el.querySelector(".content")?.classList.remove("is-visible");
+});
+
 
         const currentScene = scenes[currentIndex];
         const nextScene = scenes[Math.min(currentIndex + 1, totalScenes - 1)];
 
-        if (currentScene) {
+        if (currentScene && currentScene.el) {
           currentScene.el.style.visibility = "visible";
           currentScene.el.style.opacity = 1;
 
@@ -403,7 +413,7 @@ preloadFrames(scenes[4]);
           }
         }
 
-        if (nextScene && nextScene !== currentScene) {
+      if (nextScene && nextScene !== currentScene && nextScene.el) {
           const fadeStart = 0.72;
           const fadeProgress = clamp((progress - fadeStart) / (1 - fadeStart), 0, 1);
 
