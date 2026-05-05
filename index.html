@@ -1,232 +1,406 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panda Universe | Immersive Portfolio</title>
-    <style>
-        /* 1. Reset & Base Tone */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            background-color: #000; 
-            color: #fff; 
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            /* JS에서 스크롤 길이를 동적으로 계산해 넣어줄 예정입니다. */
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panda Universe | Image Sequence Scrub Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        /* 2. Fixed Immersive Container */
-        .immersive-wrapper {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            background: #000;
-        }
+    html, body {
+      width: 100%;
+      background: #000;
+      color: #fff;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
+    }
 
-        .scene {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0; /* JS로 스크롤에 따라 opacity를 조절해 크로스페이드 구현 */
-            visibility: hidden;
-        }
+    body {
+      background: #000;
+    }
 
-        /* 3. Video Assets */
-        .scene-video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -2;
-            /* 스크롤 제어를 위해 transition은 제거합니다 (스크롤 값에 즉각 반응해야 함) */
-        }
+    #scroll-space {
+      width: 100%;
+    }
 
-        .overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: -1;
-        }
+    .immersive-wrapper {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #000;
+    }
 
-        /* 4. Typography & Animations */
-        .content {
-            position: relative;
-            z-index: 10;
-            text-align: center;
-            padding: 0 20px;
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.8s ease, transform 0.8s ease;
-        }
+    .scene {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
 
-        /* JS에서 특정 프레임(스크롤 구간) 도달 시 클래스 부여 */
-        .content.is-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .scene canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
 
-        .brand-title { font-size: 4rem; font-weight: 200; letter-spacing: 2px; margin-bottom: 16px; text-transform: uppercase; }
-        .section-title { font-size: 2.5rem; font-weight: 300; letter-spacing: 1.5px; margin-bottom: 12px; }
-        .copy { font-size: 1.1rem; font-weight: 300; letter-spacing: 0.5px; opacity: 0.8; max-width: 600px; margin: 0 auto; line-height: 1.6; }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      pointer-events: none;
+    }
 
-        .cta-container { margin-top: 40px; display: flex; gap: 20px; justify-content: center; }
-        .cta-link {
-            display: inline-block; padding: 12px 32px; border: 1px solid rgba(255, 255, 255, 0.5);
-            color: #fff; text-decoration: none; font-size: 0.9rem; letter-spacing: 1px; transition: all 0.3s ease;
-        }
-        .cta-link:hover { background: #fff; color: #000; }
-    </style>
+    .content {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, calc(-50% + 30px));
+      width: min(90vw, 900px);
+      text-align: center;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.45s ease, transform 0.45s ease;
+      will-change: opacity, transform;
+      pointer-events: none;
+    }
+
+    .content.is-visible {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+
+    .brand-title {
+      font-size: clamp(2.6rem, 6vw, 5rem);
+      font-weight: 200;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 300;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+    }
+
+    .copy {
+      font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+      line-height: 1.7;
+      opacity: 0.82;
+      max-width: 680px;
+      margin: 0 auto;
+      font-weight: 300;
+    }
+
+    .scroll-indicator {
+      position: absolute;
+      left: 50%;
+      bottom: 36px;
+      transform: translateX(-50%);
+      z-index: 10;
+      font-size: 0.78rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.6;
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        width: min(92vw, 700px);
+      }
+
+      .scroll-indicator {
+        bottom: 24px;
+        font-size: 0.7rem;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <!-- 스크롤을 발생시키기 위한 더미 공간 (JS에서 높이 지정) -->
-    <div id="scroll-space"></div>
+  <div id="scroll-space"></div>
 
-    <main class="immersive-wrapper">
-        <!-- Scene 1: Hero -->
-        <!-- *주의: autoplay, loop를 뺐습니다. 제어권은 스크롤에 있습니다. -->
-        <section class="scene">
-            <video class="scene-video" src="video/web_01.mp4" poster="video/web_01_poster.jpg" muted playsinline preload="auto"></video>
-            <div class="overlay"></div>
-            <div class="content">
-                <h1 class="brand-title">Panda Universe</h1>
-                <p class="copy">Motion built for space and story.</p>
-            </div>
-        </section>
+  <main class="immersive-wrapper">
+    <!-- Scene 1 -->
+    <section class="scene" id="scene-1">
+      <canvas id="canvas-1"></canvas>
+      <div class="overlay" style="background: rgba(0,0,0,0.30);"></div>
+      <div class="content">
+        <h1 class="brand-title">Panda Universe</h1>
+        <p class="copy">Motion built for space and story.</p>
+      </div>
+    </section>
 
-        <!-- Scene 2: Commercial -->
-        <section class="scene">
-            <video class="scene-video" src="video/web_02.mp4" poster="video/web_02_poster.jpg" muted playsinline preload="auto"></video>
-            <div class="overlay" style="background: rgba(0,0,0,0.5);"></div>
-            <div class="content">
-                <h2 class="section-title">Commercial Experience</h2>
-                <p class="copy">Visual systems for immersive moments.</p>
-            </div>
-        </section>
+    <!-- Scene 2 -->
+    <section class="scene" id="scene-2">
+      <canvas id="canvas-2"></canvas>
+      <div class="overlay" style="background: rgba(0,0,0,0.45);"></div>
+      <div class="content">
+        <h2 class="section-title">Commercial Experience</h2>
+        <p class="copy">Visual systems for immersive moments.</p>
+      </div>
+    </section>
 
-        <!-- Scene 3: Art & Direction -->
-        <section class="scene">
-            <video class="scene-video" src="video/web_03.mp4" poster="video/web_03_poster.jpg" muted playsinline preload="auto"></video>
-            <div class="overlay" style="background: rgba(0,0,0,0.6);"></div>
-            <div class="content">
-                <h2 class="section-title">Media Art & Direction</h2>
-                <p class="copy">3D, motion, and AI-assisted image direction.</p>
-            </div>
-        </section>
+    <!-- Scene 3 -->
+    <section class="scene" id="scene-3">
+      <canvas id="canvas-3"></canvas>
+      <div class="overlay" style="background: rgba(0,0,0,0.55);"></div>
+      <div class="content">
+        <h2 class="section-title">Media Art & Direction</h2>
+        <p class="copy">3D, motion, and AI-assisted image direction.</p>
+      </div>
+    </section>
 
-        <!-- Scene 4: Workflow -->
-        <section class="scene">
-            <video class="scene-video" src="video/web_04.mp4" poster="video/web_04_poster.jpg" muted playsinline preload="auto"></video>
-            <div class="overlay" style="background: rgba(0,0,0,0.7);"></div>
-            <div class="content">
-                <h2 class="section-title">The Workflow</h2>
-                <p class="copy">Cinema 4D, Redshift, and visual execution.</p>
-            </div>
-        </section>
+    <div class="scroll-indicator">Scroll</div>
+  </main>
 
-        <!-- Scene 5: Outro -->
-        <section class="scene">
-            <video class="scene-video" src="video/web_05.mp4" poster="video/web_05_poster.jpg" muted playsinline preload="auto"></video>
-            <div class="overlay" style="background: rgba(0,0,0,0.5);"></div>
-            <div class="content">
-                <h2 class="section-title">Designed to be felt<br>before explained.</h2>
-                <div class="cta-container">
-                    <a href="Panda_Universe_Portfolio.pdf" target="_blank" class="cta-link">View Portfolio</a>
-                </div>
-            </div>
-        </section>
-    </main>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const scenes = [
+        {
+          el: document.getElementById("scene-1"),
+          canvas: document.getElementById("canvas-1"),
+          folder: "img sequence",
+          prefix: "web_01_",
+          frameCount: 181
+        },
+        {
+          el: document.getElementById("scene-2"),
+          canvas: document.getElementById("canvas-2"),
+          folder: "img sequence",
+          prefix: "web_02_",
+          frameCount: 181
+        },
+        {
+          el: document.getElementById("scene-3"),
+          canvas: document.getElementById("canvas-3"),
+          folder: "img sequence",
+          prefix: "web_03_",
+          frameCount: 181
+        }
+      ];
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const scenes = document.querySelectorAll('.scene');
-            const videos = document.querySelectorAll('.scene-video');
-            const totalScenes = scenes.length;
+      const scrollSpace = document.getElementById("scroll-space");
+      const totalScenes = scenes.length;
 
-            // 1. 스크롤 공간 설정: 한 씬당 스크롤을 얼마나 길게 할 것인가 (예: 화면 높이의 2배)
-            const scrollPerScene = window.innerHeight * 2; 
-            // 2. 겹치는 구간(Crossfade Transition) 설정: 약 50프레임이 겹치는 느낌을 주기 위한 스크롤 픽셀
-            const overlapScroll = window.innerHeight * 0.5; 
+      // 한 씬당 스크롤 길이
+      const scrollPerScene = window.innerHeight * 1.7;
+      scrollSpace.style.height = `${scrollPerScene * totalScenes}px`;
 
-            // 전체 스크롤 가능한 높이 세팅
-            document.getElementById('scroll-space').style.height = `${(scrollPerScene * totalScenes)}px`;
+      function pad(num, size = 5) {
+        return String(num).padStart(size, "0");
+      }
 
-            // 부드러운 스크rubbing을 위해 requestAnimationFrame 사용
-            let isTicking = false;
+      function getFramePath(scene, index) {
+        return `${scene.folder}/${scene.prefix}${pad(index)}.png`;
+      }
 
-            function updateScroll() {
-                const scrollY = window.scrollY;
+      function setupCanvas(scene) {
+        const canvas = scene.canvas;
+        const ctx = canvas.getContext("2d", { alpha: false });
+        scene.ctx = ctx;
 
-                scenes.forEach((scene, index) => {
-                    const video = videos[index];
-                    if (Number.isNaN(video.duration)) return; // 영상 메타데이터 로드 전이면 패스
+        function resizeCanvas() {
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.floor(window.innerWidth * dpr);
+          canvas.height = Math.floor(window.innerHeight * dpr);
+          canvas.style.width = `${window.innerWidth}px`;
+          canvas.style.height = `${window.innerHeight}px`;
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.scale(dpr, dpr);
+          if (scene.loadedFrames && scene.loadedFrames[0]) {
+            drawFrame(scene, scene.currentFrame || 0);
+          }
+        }
 
-                    // 각 씬의 시작과 끝 스크롤 좌표 계산
-                    let startScroll = index * scrollPerScene;
-                    let endScroll = startScroll + scrollPerScene;
+        scene.resizeCanvas = resizeCanvas;
+        resizeCanvas();
+      }
 
-                    // 앞뒤 씬과 겹치도록(Overlap) 구간 확장
-                    if (index > 0) startScroll -= overlapScroll;
-                    if (index < totalScenes - 1) endScroll += overlapScroll;
+      function drawImageCover(ctx, img, canvasWidth, canvasHeight) {
+        const imageRatio = img.width / img.height;
+        const canvasRatio = canvasWidth / canvasHeight;
 
-                    // 현재 스크롤이 이 씬의 구간 안에 있다면
-                    if (scrollY >= startScroll && scrollY <= endScroll) {
-                        scene.style.visibility = 'visible';
+        let drawWidth, drawHeight, x, y;
 
-                        // 해당 씬 내에서의 진행도 (0.0 ~ 1.0)
-                        const localProgress = (scrollY - startScroll) / (endScroll - startScroll);
-                        
-                        // [핵심] 진행도를 영상 프레임(currentTime)에 맵핑
-                        video.currentTime = localProgress * video.duration;
+        if (imageRatio > canvasRatio) {
+          drawHeight = canvasHeight;
+          drawWidth = img.width * (canvasHeight / img.height);
+          x = (canvasWidth - drawWidth) / 2;
+          y = 0;
+        } else {
+          drawWidth = canvasWidth;
+          drawHeight = img.height * (canvasWidth / img.width);
+          x = 0;
+          y = (canvasHeight - drawHeight) / 2;
+        }
 
-                        // [핵심] 겹치는 구간에서의 Crossfade (투명도 조절)
-                        let opacity = 1;
-                        if (index > 0 && scrollY < startScroll + overlapScroll) {
-                            // 앞쪽 씬과 겹치며 등장하는 구간 (Fade In)
-                            opacity = (scrollY - startScroll) / overlapScroll;
-                        } else if (index < totalScenes - 1 && scrollY > endScroll - overlapScroll) {
-                            // 뒤쪽 씬과 겹치며 사라지는 구간 (Fade Out)
-                            opacity = (endScroll - scrollY) / overlapScroll;
-                        }
-                        scene.style.opacity = opacity;
+        ctx.drawImage(img, x, y, drawWidth, drawHeight);
+      }
 
-                        // [핵심] 영상이 30% ~ 70% 구간을 지날 때 텍스트 등장
-                        const content = scene.querySelector('.content');
-                        if (content) {
-                            if (localProgress > 0.3 && localProgress < 0.7) {
-                                content.classList.add('is-visible');
-                            } else {
-                                content.classList.remove('is-visible');
-                            }
-                        }
-                    } else {
-                        // 구간 밖이면 숨김
-                        scene.style.opacity = 0;
-                        scene.style.visibility = 'hidden';
-                    }
-                });
-                isTicking = false;
+      function drawFrame(scene, frameIndex) {
+        const img = scene.loadedFrames[frameIndex];
+        if (!img) return;
+
+        const ctx = scene.ctx;
+        const canvasWidth = window.innerWidth;
+        const canvasHeight = window.innerHeight;
+
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        drawImageCover(ctx, img, canvasWidth, canvasHeight);
+        scene.currentFrame = frameIndex;
+      }
+
+      function preloadFrames(scene, priority = false) {
+        scene.loadedFrames = new Array(scene.frameCount);
+        scene.loadedCount = 0;
+
+        return new Promise((resolve) => {
+          let resolved = false;
+
+          for (let i = 0; i < scene.frameCount; i++) {
+            const img = new Image();
+            img.decoding = "async";
+            if (priority && i < 20) {
+              img.fetchPriority = "high";
             }
 
-            window.addEventListener('scroll', () => {
-                if (!isTicking) {
-                    window.requestAnimationFrame(updateScroll);
-                    isTicking = true;
-                }
-            });
+            img.src = getFramePath(scene, i);
 
-            // 초기 로드 시 한 번 실행
-            setTimeout(updateScroll, 100);
+            img.onload = () => {
+              scene.loadedFrames[i] = img;
+              scene.loadedCount++;
+
+              if (!resolved && scene.loadedFrames[0]) {
+                drawFrame(scene, 0);
+                resolved = true;
+                resolve();
+              }
+            };
+
+            img.onerror = () => {
+              // 에러 나도 진행은 하되, 첫 프레임조차 못 불러오면 테스트 어려움
+              console.warn("Failed to load frame:", getFramePath(scene, i));
+            };
+          }
         });
-    </script>
+      }
+
+      scenes.forEach(setupCanvas);
+
+      // 첫 씬 우선 로드
+      await preloadFrames(scenes[0], true);
+
+      // 나머지는 백그라운드 로드
+      preloadFrames(scenes[1]);
+      preloadFrames(scenes[2]);
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function updateSceneVisibility(scrollY) {
+        const currentIndex = clamp(Math.floor(scrollY / scrollPerScene), 0, totalScenes - 1);
+        const localY = scrollY - currentIndex * scrollPerScene;
+        const progress = clamp(localY / scrollPerScene, 0, 1);
+
+        scenes.forEach((scene, i) => {
+          scene.el.style.visibility = "hidden";
+          scene.el.style.opacity = 0;
+          scene.el.querySelector(".content")?.classList.remove("is-visible");
+        });
+
+        const currentScene = scenes[currentIndex];
+        const nextScene = scenes[Math.min(currentIndex + 1, totalScenes - 1)];
+
+        if (currentScene) {
+          currentScene.el.style.visibility = "visible";
+          currentScene.el.style.opacity = 1;
+
+          if (progress > 0.12 && progress < 0.78) {
+            currentScene.el.querySelector(".content")?.classList.add("is-visible");
+          }
+        }
+
+        // 다음 씬이 있다면 크로스페이드
+        if (nextScene && nextScene !== currentScene) {
+          const fadeStart = 0.72;
+          const fadeProgress = clamp((progress - fadeStart) / (1 - fadeStart), 0, 1);
+
+          if (fadeProgress > 0) {
+            currentScene.el.style.opacity = 1 - fadeProgress;
+            nextScene.el.style.visibility = "visible";
+            nextScene.el.style.opacity = fadeProgress;
+
+            if (fadeProgress > 0.35) {
+              nextScene.el.querySelector(".content")?.classList.add("is-visible");
+            }
+          }
+        }
+      }
+
+      function updateFrames(scrollY) {
+        const currentIndex = clamp(Math.floor(scrollY / scrollPerScene), 0, totalScenes - 1);
+        const localY = scrollY - currentIndex * scrollPerScene;
+        const progress = clamp(localY / scrollPerScene, 0, 1);
+
+        const currentScene = scenes[currentIndex];
+        if (!currentScene || !currentScene.loadedFrames) return;
+
+        const frameIndex = clamp(
+          Math.round(progress * (currentScene.frameCount - 1)),
+          0,
+          currentScene.frameCount - 1
+        );
+
+        if (frameIndex !== currentScene.currentFrame) {
+          drawFrame(currentScene, frameIndex);
+        }
+
+        // 다음 씬 첫 프레임 미리 그릴 준비
+        const nextScene = scenes[Math.min(currentIndex + 1, totalScenes - 1)];
+        if (nextScene && nextScene !== currentScene && nextScene.loadedFrames && nextScene.loadedFrames[0] && nextScene.currentFrame == null) {
+          drawFrame(nextScene, 0);
+        }
+      }
+
+      let ticking = false;
+
+      function updateAll() {
+        const scrollY = window.scrollY;
+        updateFrames(scrollY);
+        updateSceneVisibility(scrollY);
+        ticking = false;
+      }
+
+      window.addEventListener("scroll", () => {
+        if (!ticking) {
+          requestAnimationFrame(updateAll);
+          ticking = true;
+        }
+      });
+
+      window.addEventListener("resize", () => {
+        const newScrollPerScene = window.innerHeight * 1.7;
+        scrollSpace.style.height = `${newScrollPerScene * totalScenes}px`;
+
+        scenes.forEach(scene => {
+          scene.resizeCanvas();
+        });
+
+        updateAll();
+      });
+
+      updateAll();
+    });
+  </script>
 </body>
 </html>
