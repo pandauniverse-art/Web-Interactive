@@ -6,43 +6,39 @@
     <title>Panda Universe | Immersive Portfolio</title>
     <style>
         /* 1. Reset & Base Tone */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body, html {
-            background-color: #000;
-            color: #fff;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background-color: #000; 
+            color: #fff; 
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            overflow-x: hidden;
-            scroll-behavior: smooth;
+            /* JS에서 스크롤 길이를 동적으로 계산해 넣어줄 예정입니다. */
         }
 
-        /* 2. Immersive Structure (Sticky Overlap Technique) */
-        .immersive-container {
-            position: relative;
-        }
-
-        .scene {
-            position: sticky;
+        /* 2. Fixed Immersive Container */
+        .immersive-wrapper {
+            position: fixed;
             top: 0;
+            left: 0;
             width: 100vw;
             height: 100vh;
             overflow: hidden;
+            background: #000;
+        }
+
+        .scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
+            opacity: 0; /* JS로 스크롤에 따라 opacity를 조절해 크로스페이드 구현 */
+            visibility: hidden;
         }
 
-        .scene:nth-child(1) { z-index: 1; }
-        .scene:nth-child(2) { z-index: 2; }
-        .scene:nth-child(3) { z-index: 3; }
-        .scene:nth-child(4) { z-index: 4; }
-        .scene:nth-child(5) { z-index: 5; }
-
-        /* 3. Video Assets & Background */
+        /* 3. Video Assets */
         .scene-video {
             position: absolute;
             top: 0;
@@ -51,148 +47,75 @@
             height: 100%;
             object-fit: cover;
             z-index: -2;
-            transform: scale(1.05);
-            transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1);
-            opacity: 0; /* 처음에는 영상도 살짝 숨김 처리 */
-        }
-
-        .scene.is-active .scene-video {
-            transform: scale(1);
-            opacity: 1; /* 화면 진입 시 영상이 부드럽게 나타남 */
-            transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 1s ease;
+            /* 스크롤 제어를 위해 transition은 제거합니다 (스크롤 값에 즉각 반응해야 함) */
         }
 
         .overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.4);
             z-index: -1;
-            transition: background 1s ease;
         }
 
-        /* 4. Typography & Layout */
+        /* 4. Typography & Animations */
         .content {
             position: relative;
             z-index: 10;
             text-align: center;
             padding: 0 20px;
             opacity: 0;
-            transform: translateY(40px); /* 텍스트가 조금 더 아래에서 올라오도록 수정 */
-            transition: opacity 1.2s ease 0.3s, transform 1.2s ease 0.3s; /* 영상 재생 후 0.3초 딜레이로 텍스트 등장 */
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
         }
 
-        .scene.is-active .content {
+        /* JS에서 특정 프레임(스크롤 구간) 도달 시 클래스 부여 */
+        .content.is-visible {
             opacity: 1;
             transform: translateY(0);
         }
 
-        .brand-title {
-            font-size: 4rem;
-            font-weight: 200;
-            letter-spacing: 2px;
-            margin-bottom: 16px;
-            text-transform: uppercase;
-        }
+        .brand-title { font-size: 4rem; font-weight: 200; letter-spacing: 2px; margin-bottom: 16px; text-transform: uppercase; }
+        .section-title { font-size: 2.5rem; font-weight: 300; letter-spacing: 1.5px; margin-bottom: 12px; }
+        .copy { font-size: 1.1rem; font-weight: 300; letter-spacing: 0.5px; opacity: 0.8; max-width: 600px; margin: 0 auto; line-height: 1.6; }
 
-        .section-title {
-            font-size: 2.5rem;
-            font-weight: 300;
-            letter-spacing: 1.5px;
-            margin-bottom: 12px;
-        }
-
-        .copy {
-            font-size: 1.1rem;
-            font-weight: 300;
-            letter-spacing: 0.5px;
-            opacity: 0.8;
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-
-        /* 5. UI Elements */
-        .scroll-indicator {
-            position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.8rem;
-            font-weight: 300;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            opacity: 0; /* 초기 숨김 */
-            transition: opacity 1s ease 1s; /* 씬 1 등장 후 1초 뒤에 나타남 */
-        }
-
-        .scene.is-active .scroll-indicator {
-            opacity: 0.6;
-            animation: pulse 2s infinite 1s; /* 딜레이 후 펄스 애니메이션 시작 */
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.3; transform: translate(-50%, 0); }
-            50% { opacity: 0.8; transform: translate(-50%, 5px); }
-            100% { opacity: 0.3; transform: translate(-50%, 0); }
-        }
-
-        .cta-container {
-            margin-top: 40px;
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-        }
-
+        .cta-container { margin-top: 40px; display: flex; gap: 20px; justify-content: center; }
         .cta-link {
-            display: inline-block;
-            padding: 12px 32px;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            color: #fff;
-            text-decoration: none;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(5px);
+            display: inline-block; padding: 12px 32px; border: 1px solid rgba(255, 255, 255, 0.5);
+            color: #fff; text-decoration: none; font-size: 0.9rem; letter-spacing: 1px; transition: all 0.3s ease;
         }
-
-        .cta-link:hover {
-            background: #fff;
-            color: #000;
-        }
+        .cta-link:hover { background: #fff; color: #000; }
     </style>
 </head>
 <body>
 
-    <main class="immersive-container">
+    <!-- 스크롤을 발생시키기 위한 더미 공간 (JS에서 높이 지정) -->
+    <div id="scroll-space"></div>
 
-        <!-- Scene 1: Hero / Entrance -->
-        <!-- *주의: autoplay 속성을 모두 제거했습니다. -->
-        <section class="scene" id="scene-01">
-            <video class="scene-video" src="video/web_01.mp4" poster="video/web_01_poster.jpg" loop muted playsinline></video>
+    <main class="immersive-wrapper">
+        <!-- Scene 1: Hero -->
+        <!-- *주의: autoplay, loop를 뺐습니다. 제어권은 스크롤에 있습니다. -->
+        <section class="scene">
+            <video class="scene-video" src="video/web_01.mp4" poster="video/web_01_poster.jpg" muted playsinline preload="auto"></video>
             <div class="overlay"></div>
             <div class="content">
                 <h1 class="brand-title">Panda Universe</h1>
                 <p class="copy">Motion built for space and story.</p>
             </div>
-            <div class="scroll-indicator">Scroll to Explore</div>
         </section>
 
-        <!-- Scene 2: Core Work / Commercial Experience -->
-        <section class="scene" id="scene-02">
-            <video class="scene-video" src="video/web_02.mp4" poster="video/web_02_poster.jpg" loop muted playsinline></video>
+        <!-- Scene 2: Commercial -->
+        <section class="scene">
+            <video class="scene-video" src="video/web_02.mp4" poster="video/web_02_poster.jpg" muted playsinline preload="auto"></video>
             <div class="overlay" style="background: rgba(0,0,0,0.5);"></div>
             <div class="content">
                 <h2 class="section-title">Commercial Experience</h2>
-                <p class="copy">Visual systems for immersive moments.<br>Media Facade / Brand Event / Installation</p>
+                <p class="copy">Visual systems for immersive moments.</p>
             </div>
         </section>
 
-        <!-- Scene 3: Personal Vision / AI / 3D Visual -->
-        <section class="scene" id="scene-03">
-            <video class="scene-video" src="video/web_03.mp4" poster="video/web_03_poster.jpg" loop muted playsinline></video>
+        <!-- Scene 3: Art & Direction -->
+        <section class="scene">
+            <video class="scene-video" src="video/web_03.mp4" poster="video/web_03_poster.jpg" muted playsinline preload="auto"></video>
             <div class="overlay" style="background: rgba(0,0,0,0.6);"></div>
             <div class="content">
                 <h2 class="section-title">Media Art & Direction</h2>
@@ -200,67 +123,109 @@
             </div>
         </section>
 
-        <!-- Scene 4: Process / Workflow / Making -->
-        <section class="scene" id="scene-04">
-            <video class="scene-video" src="video/web_04.mp4" poster="video/web_04_poster.jpg" loop muted playsinline></video>
+        <!-- Scene 4: Workflow -->
+        <section class="scene">
+            <video class="scene-video" src="video/web_04.mp4" poster="video/web_04_poster.jpg" muted playsinline preload="auto"></video>
             <div class="overlay" style="background: rgba(0,0,0,0.7);"></div>
             <div class="content">
                 <h2 class="section-title">The Workflow</h2>
-                <p class="copy">Cinema 4D, Redshift, and visual execution.<br>Designed to bridge tools and atmosphere.</p>
+                <p class="copy">Cinema 4D, Redshift, and visual execution.</p>
             </div>
         </section>
 
-        <!-- Scene 5: Outro / Contact / Portfolio CTA -->
-        <section class="scene" id="scene-05">
-            <video class="scene-video" src="video/web_05.mp4" poster="video/web_05_poster.jpg" loop muted playsinline></video>
+        <!-- Scene 5: Outro -->
+        <section class="scene">
+            <video class="scene-video" src="video/web_05.mp4" poster="video/web_05_poster.jpg" muted playsinline preload="auto"></video>
             <div class="overlay" style="background: rgba(0,0,0,0.5);"></div>
             <div class="content">
                 <h2 class="section-title">Designed to be felt<br>before explained.</h2>
                 <div class="cta-container">
-                    <a href="Panda_Universe_Portfolio.pdf" target="_blank" class="cta-link">View Portfolio (PDF)</a>
-                    <a href="mailto:contact@pandauniverse.com" class="cta-link">Contact</a>
+                    <a href="Panda_Universe_Portfolio.pdf" target="_blank" class="cta-link">View Portfolio</a>
                 </div>
             </div>
         </section>
-
     </main>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const scenes = document.querySelectorAll('.scene');
+            const videos = document.querySelectorAll('.scene-video');
+            const totalScenes = scenes.length;
 
-            // 화면에 50% 이상 보일 때 이벤트를 발생시킵니다.
-            const observerOptions = {
-                root: null,
-                rootMargin: '0px',
-                threshold: 0.5 
-            };
+            // 1. 스크롤 공간 설정: 한 씬당 스크롤을 얼마나 길게 할 것인가 (예: 화면 높이의 2배)
+            const scrollPerScene = window.innerHeight * 2; 
+            // 2. 겹치는 구간(Crossfade Transition) 설정: 약 50프레임이 겹치는 느낌을 주기 위한 스크롤 픽셀
+            const overlapScroll = window.innerHeight * 0.5; 
 
-            const sceneObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    // 현재 씬 안의 비디오 요소를 찾습니다.
-                    const video = entry.target.querySelector('video');
+            // 전체 스크롤 가능한 높이 세팅
+            document.getElementById('scroll-space').style.height = `${(scrollPerScene * totalScenes)}px`;
 
-                    if (entry.isIntersecting) {
-                        // 스크롤이 도달하여 화면에 들어왔을 때
-                        entry.target.classList.add('is-active');
-                        if(video) {
-                            video.play(); // 영상 재생 시작
+            // 부드러운 스크rubbing을 위해 requestAnimationFrame 사용
+            let isTicking = false;
+
+            function updateScroll() {
+                const scrollY = window.scrollY;
+
+                scenes.forEach((scene, index) => {
+                    const video = videos[index];
+                    if (Number.isNaN(video.duration)) return; // 영상 메타데이터 로드 전이면 패스
+
+                    // 각 씬의 시작과 끝 스크롤 좌표 계산
+                    let startScroll = index * scrollPerScene;
+                    let endScroll = startScroll + scrollPerScene;
+
+                    // 앞뒤 씬과 겹치도록(Overlap) 구간 확장
+                    if (index > 0) startScroll -= overlapScroll;
+                    if (index < totalScenes - 1) endScroll += overlapScroll;
+
+                    // 현재 스크롤이 이 씬의 구간 안에 있다면
+                    if (scrollY >= startScroll && scrollY <= endScroll) {
+                        scene.style.visibility = 'visible';
+
+                        // 해당 씬 내에서의 진행도 (0.0 ~ 1.0)
+                        const localProgress = (scrollY - startScroll) / (endScroll - startScroll);
+                        
+                        // [핵심] 진행도를 영상 프레임(currentTime)에 맵핑
+                        video.currentTime = localProgress * video.duration;
+
+                        // [핵심] 겹치는 구간에서의 Crossfade (투명도 조절)
+                        let opacity = 1;
+                        if (index > 0 && scrollY < startScroll + overlapScroll) {
+                            // 앞쪽 씬과 겹치며 등장하는 구간 (Fade In)
+                            opacity = (scrollY - startScroll) / overlapScroll;
+                        } else if (index < totalScenes - 1 && scrollY > endScroll - overlapScroll) {
+                            // 뒤쪽 씬과 겹치며 사라지는 구간 (Fade Out)
+                            opacity = (endScroll - scrollY) / overlapScroll;
+                        }
+                        scene.style.opacity = opacity;
+
+                        // [핵심] 영상이 30% ~ 70% 구간을 지날 때 텍스트 등장
+                        const content = scene.querySelector('.content');
+                        if (content) {
+                            if (localProgress > 0.3 && localProgress < 0.7) {
+                                content.classList.add('is-visible');
+                            } else {
+                                content.classList.remove('is-visible');
+                            }
                         }
                     } else {
-                        // 스크롤이 지나가서 화면에서 벗어났을 때
-                        entry.target.classList.remove('is-active');
-                        if(video) {
-                            video.pause(); // 영상 일시정지
-                            video.currentTime = 0; // 다시 돌아왔을 때 처음부터 재생되도록 초기화
-                        }
+                        // 구간 밖이면 숨김
+                        scene.style.opacity = 0;
+                        scene.style.visibility = 'hidden';
                     }
                 });
-            }, observerOptions);
+                isTicking = false;
+            }
 
-            scenes.forEach(scene => {
-                sceneObserver.observe(scene);
+            window.addEventListener('scroll', () => {
+                if (!isTicking) {
+                    window.requestAnimationFrame(updateScroll);
+                    isTicking = true;
+                }
             });
+
+            // 초기 로드 시 한 번 실행
+            setTimeout(updateScroll, 100);
         });
     </script>
 </body>
