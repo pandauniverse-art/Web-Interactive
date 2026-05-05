@@ -34,7 +34,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            /* 이전 씬을 어둡게 덮으면서 넘어가는 효과를 위한 z-index 처리 */
         }
 
         .scene:nth-child(1) { z-index: 1; }
@@ -52,11 +51,10 @@
             height: 100%;
             object-fit: cover;
             z-index: -2;
-            transform: scale(1.05); /* 트랜지션 시 미세한 스케일 다운을 위한 여백 */
+            transform: scale(1.05);
             transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        /* 텍스트 가독성을 위한 Dark Overlay */
         .overlay {
             position: absolute;
             top: 0;
@@ -79,7 +77,6 @@
             transition: opacity 1s ease, transform 1s ease;
         }
 
-        /* JS로 화면 진입 시 트리거되는 클래스 */
         .scene.is-active .content {
             opacity: 1;
             transform: translateY(0);
@@ -165,8 +162,7 @@
 
         <!-- Scene 1: Hero / Entrance -->
         <section class="scene" id="scene-01">
-            <!-- 임시 placeholder 영상. 실제 적용 시 assets 교체 필요 -->
-            <video class="scene-video" src="scene01_hero.mp4" poster="scene01_hero_poster.jpg" autoplay loop muted playsinline></video>
+            <video class="scene-video" src="video/web_01.mp4" poster="video/web_01_poster.jpg" autoplay loop muted playsinline></video>
             <div class="overlay"></div>
             <div class="content">
                 <h1 class="brand-title">Panda Universe</h1>
@@ -177,7 +173,7 @@
 
         <!-- Scene 2: Core Work / Commercial Experience -->
         <section class="scene" id="scene-02">
-            <video class="scene-video" src="scene02_commercial.mp4" poster="scene02_commercial_poster.jpg" autoplay loop muted playsinline></video>
+            <video class="scene-video" src="video/web_02.mp4" poster="video/web_02_poster.jpg" autoplay loop muted playsinline></video>
             <div class="overlay" style="background: rgba(0,0,0,0.5);"></div>
             <div class="content">
                 <h2 class="section-title">Commercial Experience</h2>
@@ -187,7 +183,7 @@
 
         <!-- Scene 3: Personal Vision / AI / 3D Visual -->
         <section class="scene" id="scene-03">
-            <video class="scene-video" src="scene03_vision.mp4" poster="scene03_vision_poster.jpg" autoplay loop muted playsinline></video>
+            <video class="scene-video" src="video/web_03.mp4" poster="video/web_03_poster.jpg" autoplay loop muted playsinline></video>
             <div class="overlay" style="background: rgba(0,0,0,0.6);"></div>
             <div class="content">
                 <h2 class="section-title">Media Art & Direction</h2>
@@ -197,7 +193,7 @@
 
         <!-- Scene 4: Process / Workflow / Making -->
         <section class="scene" id="scene-04">
-            <video class="scene-video" src="scene04_process.mp4" poster="scene04_process_poster.jpg" autoplay loop muted playsinline></video>
+            <video class="scene-video" src="video/web_04.mp4" poster="video/web_04_poster.jpg" autoplay loop muted playsinline></video>
             <div class="overlay" style="background: rgba(0,0,0,0.7);"></div>
             <div class="content">
                 <h2 class="section-title">The Workflow</h2>
@@ -207,7 +203,7 @@
 
         <!-- Scene 5: Outro / Contact / Portfolio CTA -->
         <section class="scene" id="scene-05">
-            <video class="scene-video" src="scene05_outro.mp4" poster="scene05_outro_poster.jpg" autoplay loop muted playsinline></video>
+            <video class="scene-video" src="video/web_05.mp4" poster="video/web_05_poster.jpg" autoplay loop muted playsinline></video>
             <div class="overlay" style="background: rgba(0,0,0,0.5);"></div>
             <div class="content">
                 <h2 class="section-title">Designed to be felt<br>before explained.</h2>
@@ -221,14 +217,13 @@
     </main>
 
     <script>
-        // Intersection Observer를 활용한 스크롤 애니메이션 제어
         document.addEventListener("DOMContentLoaded", () => {
             const scenes = document.querySelectorAll('.scene');
 
             const observerOptions = {
                 root: null,
                 rootMargin: '0px',
-                threshold: 0.5 // 씬이 화면의 50% 이상 보일 때 트리거
+                threshold: 0.5 
             };
 
             const sceneObserver = new IntersectionObserver((entries, observer) => {
@@ -236,7 +231,6 @@
                     if (entry.isIntersecting) {
                         entry.target.classList.add('is-active');
                     } else {
-                        // 스크롤이 지나가면 애니메이션을 리셋하여 다시 볼 수 있게 함
                         entry.target.classList.remove('is-active');
                     }
                 });
