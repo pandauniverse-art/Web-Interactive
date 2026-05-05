@@ -68,29 +68,60 @@
       z-index: 3;
     }
 
-    /* ========== 2. 연출: 글래스 패널 (Frosted Glass) ========== */
+    /* ========== 2. 화면 전체 라이트 스윕 (Global Specular) ========== */
+    /* 씬 전체에 가상의 렌즈/유리 레이어를 씌웁니다 */
+    .scene::after {
+      content: "";
+      position: absolute;
+      top: 0; left: -100%;
+      width: 50vw; height: 100vh;
+      background: linear-gradient(
+        to right, 
+        rgba(255,255,255,0) 0%, 
+        rgba(255,255,255,0.06) 50%, /* 6% 투명도로 아주 고급스럽고 은은하게 */
+        rgba(255,255,255,0) 100%
+      );
+      transform: skewX(-25deg);
+      z-index: 6; /* 텍스트 박스 위로 지나가게 설정 */
+      pointer-events: none;
+    }
+
+    /* JS에서 .is-active 클래스가 부여되면 화면 전체를 빛이 훑습니다 */
+    .scene.is-active::after {
+      animation: globalSweep 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s forwards;
+    }
+
+    @keyframes globalSweep {
+      0% { left: -100%; }
+      100% { left: 200%; }
+    }
+
+    /* ========== 3. 연출: 타이트한 글래스 패널 (Frosted Glass) ========== */
     .content {
       position: absolute;
       left: 50%;
       top: 50%;
-      /* transform은 JS 패럴랙스 연산에서 제어하므로 CSS 초기값만 세팅 */
       transform: translate(-50%, -40%); 
-      width: min(85vw, 800px);
+      
+      /* 폭과 여백을 타이트하게 수정 */
+      width: fit-content; 
+      min-width: 420px;
+      max-width: 90vw;
+      padding: 36px 50px; 
+      
       text-align: center;
       z-index: 5;
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
 
-      /* 유리 질감 세팅 */
-      background: rgba(25, 25, 25, 0.25); /* 살짝 어두운 반투명 */
-      backdrop-filter: blur(15px) saturate(120%);
-      -webkit-backdrop-filter: blur(15px) saturate(120%);
-      border: 1px solid rgba(255, 255, 255, 0.1); /* 유리 테두리 빛 반사 */
-      border-radius: 24px;
-      padding: 60px 40px;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
-      overflow: hidden; /* 내부 스윕 애니메이션이 밖으로 나가지 않게 */
+      /* 유리 질감도 살짝 더 투명하게 */
+      background: rgba(20, 20, 20, 0.18); 
+      backdrop-filter: blur(12px) saturate(120%);
+      -webkit-backdrop-filter: blur(12px) saturate(120%);
+      border: 1px solid rgba(255, 255, 255, 0.08); 
+      border-radius: 16px; /* 모서리 둥글기 완화 */
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
       
       transition: opacity 0.6s ease, visibility 0.6s;
       will-change: transform, opacity;
@@ -101,44 +132,17 @@
       visibility: visible;
     }
 
-    /* ========== 3. 연출: 하이라이트 스윕 (Specular Light Sweep) ========== */
-    .content::before {
-      content: "";
-      position: absolute;
-      top: 0; left: -150%;
-      width: 50%; height: 100%;
-      background: linear-gradient(
-        to right, 
-        rgba(255,255,255,0) 0%, 
-        rgba(255,255,255,0.15) 50%, 
-        rgba(255,255,255,0) 100%
-      );
-      transform: skewX(-30deg);
-      z-index: 0;
-    }
-
-    /* 화면에 나타날 때 빛이 사선으로 한 번 훑고 지나감 */
-    .content.is-visible::before {
-      animation: sweep 1.5s cubic-bezier(0.25, 1, 0.5, 1) 0.3s forwards;
-    }
-
-    @keyframes sweep {
-      0% { left: -150%; }
-      100% { left: 200%; }
-    }
-
-    /* ========== 4. 연출: 텍스트 스태거 (Stagger Reveal) ========== */
+    /* ========== 4. 연출: 텍스트 스태거 ========== */
     .brand-title, .section-title, .copy {
       position: relative;
-      z-index: 1; /* 스윕 빛보다 텍스트가 위에 오도록 */
       opacity: 0;
       transform: translateY(20px);
       transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .brand-title { font-size: clamp(2.6rem, 5vw, 4.5rem); font-weight: 200; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; transition-delay: 0.1s; }
-    .section-title { font-size: clamp(2rem, 3.5vw, 3.2rem); font-weight: 300; letter-spacing: 1px; margin-bottom: 14px; transition-delay: 0.1s; }
-    .copy { font-size: clamp(0.95rem, 1.4vw, 1.15rem); line-height: 1.7; opacity: 0.82; max-width: 600px; margin: 0 auto; font-weight: 300; transition-delay: 0.25s; }
+    .brand-title { font-size: clamp(2.2rem, 4.5vw, 4rem); font-weight: 200; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; transition-delay: 0.1s; }
+    .section-title { font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 300; letter-spacing: 1px; margin-bottom: 12px; transition-delay: 0.1s; }
+    .copy { font-size: clamp(0.9rem, 1.2vw, 1.05rem); line-height: 1.6; opacity: 0.8; max-width: 500px; margin: 0 auto; font-weight: 300; transition-delay: 0.25s; }
 
     .content.is-visible .brand-title,
     .content.is-visible .section-title,
@@ -161,7 +165,7 @@
     }
 
     @media (max-width: 768px) {
-      .content { padding: 40px 20px; width: min(92vw, 700px); }
+      .content { min-width: auto; padding: 28px 24px; }
       .scroll-indicator { bottom: 24px; font-size: 0.7rem; }
     }
   </style>
@@ -311,7 +315,6 @@
         if (poster) poster.classList.add("is-hidden");
       }
 
-      // 배치 순차 로딩 로직 유지
       function preloadFrames(scene, priority = false) {
         scene.loadedFrames = new Array(scene.frameCount);
         scene.loadedCount = 0;
@@ -386,10 +389,10 @@
           if (i !== currentIndex && i !== currentIndex + 1) {
             scene.el.style.visibility = "hidden";
             scene.el.style.opacity = 0;
+            scene.el.classList.remove("is-active"); // 씬을 벗어나면 애니메이션 초기화
             const content = scene.el.querySelector(".content");
             if(content) {
               content.classList.remove("is-visible");
-              // 패럴랙스 리셋
               content.style.transform = `translate(-50%, -40%)`;
             }
             if(scene.canvas) {
@@ -409,13 +412,13 @@
           const content = currentScene.el.querySelector(".content");
           if (content) {
             if (progress > 0.12 && progress < 0.78) {
+              currentScene.el.classList.add("is-active"); // 화면 전체 라이트 스윕 트리거
               content.classList.add("is-visible");
               
-              // ========== 연출 5: 글래스 패널 패럴랙스 연산 ==========
-              // 배경 이미지와 텍스트 박스가 서로 다른 속도로 움직이는 듯한 깊이감 제공
               const parallaxY = (progress - 0.45) * 150; 
               content.style.transform = `translate(-50%, calc(-50% - ${parallaxY}px))`;
             } else {
+              currentScene.el.classList.remove("is-active");
               content.classList.remove("is-visible");
             }
           }
