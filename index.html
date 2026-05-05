@@ -345,8 +345,15 @@
         scene.loadedFrames = new Array(scene.frameCount);
         scene.loadedCount = 0;
 
-        return new Promise((resolve) => {
-          let resolved = false;
+       return new Promise((resolve) => {
+  let resolved = false;
+
+  setTimeout(() => {
+    if (!resolved) {
+      resolved = true;
+      resolve();
+    }
+  }, 1500);
 
           for (let i = 0; i < scene.frameCount; i++) {
             const img = new Image();
@@ -368,20 +375,31 @@
               }
             };
 
-            img.onerror = () => {
-              console.warn("Failed to load frame:", getFramePath(scene, i));
-            };
+          img.onerror = () => {
+  console.warn("Failed to load frame:", getFramePath(scene, i));
+
+  if (!resolved && i === 0) {
+    resolved = true;
+    resolve();
+  }
+};
+
           }
         });
       }
 
       scenes.forEach(setupCanvas);
 
-   await preloadFrames(scenes[0], true);
-preloadFrames(scenes[1]);
-preloadFrames(scenes[2]);
-preloadFrames(scenes[3]);
-preloadFrames(scenes[4]);
+      scenes[0].el.style.visibility = "visible";
+      scenes[0].el.style.opacity = 1;
+      scenes[0].el.querySelector(".content")?.classList.add("is-visible");
+
+      await preloadFrames(scenes[0], true);
+      preloadFrames(scenes[1]);
+      preloadFrames(scenes[2]);
+      preloadFrames(scenes[3]);
+      preloadFrames(scenes[4]);
+
 
 
       function clamp(value, min, max) {
